@@ -14,7 +14,7 @@ import {
 import { BuiltInProviderType } from 'next-auth/providers/index';
 
 function Nav() {
-  const isUserLoggedIn = true;
+  const { data: session } = useSession();
   const [toggleDropdown, setToggleDropdown] = useState(false);
 
   const [providers, setProviders] = useState<Record<
@@ -45,19 +45,25 @@ function Nav() {
 
       {/* desktop navigation */}
       <div className="sm:flex hidden">
-        {isUserLoggedIn ? (
+        {session?.user ? (
           <div className="flex gap-3 md:gap-5">
             <Link href="/create-prompt" className="black_btn">
               Create Post
             </Link>
 
-            <button type="button" className="outline_btn">
+            <button
+              type="button"
+              className="outline_btn"
+              onClick={() => {
+                signOut();
+              }}
+            >
               Sign Out
             </button>
 
             <Link href="/profile">
               <Image
-                src="/assets/images/logo.svg"
+                src={session?.user?.image || '/assets/images/logo.svg'}
                 width={37}
                 height={37}
                 className="rounded-full"
@@ -84,10 +90,10 @@ function Nav() {
 
       {/* mobile navigation */}
       <div className="sm:hidden flex relative">
-        {isUserLoggedIn ? (
+        {session?.user ? (
           <div className="flex">
             <Image
-              src="/assets/images/logo.svg"
+              src={session?.user?.image || '/assets/images/logo.svg'}
               width={30}
               height={30}
               alt="Promptopia logo"

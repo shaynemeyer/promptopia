@@ -2,8 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import PromptCard from './PromptCard';
+import { Post } from '@/types/post';
 
-const PromptCardList = ({ data, handleTagClick }) => {
+interface PromptCardListProps {
+  data: Post[];
+  handleTagClick?: (tagName: string) => void;
+}
+
+const PromptCardList = ({ data, handleTagClick }: PromptCardListProps) => {
   return (
     <div className="mt-16 prompt_layout">
       {data.map((post) => (
@@ -18,10 +24,14 @@ const PromptCardList = ({ data, handleTagClick }) => {
 };
 
 function Feed() {
-  const [searchText, setSearchText] = useState('');
-  const [posts, setPosts] = useState([]);
+  const [posts, setPosts] = useState<Post[]>([]);
 
-  const handleSearchChange = (e) => {};
+  // Search states
+  const [searchText, setSearchText] = useState('');
+  const [searchTimeout, setSearchTimeout] = useState<ReturnType<
+    typeof setTimeout
+  > | null>(null);
+  const [searchedResults, setSearchedResults] = useState<Post[]>([]);
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -32,9 +42,40 @@ function Feed() {
     fetchPosts();
   }, []);
 
+  const filterPrompts = (searchText: string) => {
+    const regex = new RegExp(searchText, 'i'); // case insensitive
+    return posts.filter(
+      (post: Post) =>
+        regex.test(post?.creator?.username as string) ||
+        regex.test(post?.tag as string) ||
+        regex.test(post?.prompt as string)
+    );
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (searchTimeout) clearTimeout(searchTimeout);
+
+    setSearchText(e.target.value);
+
+    // debounce
+    setSearchTimeout(
+      setTimeout(() => {
+        const searchResult = filterPrompts(e.target.value);
+        setSearchedResults(searchResult);
+      }, 500)
+    );
+  };
+
+  const handleTagClick = (tagName: string) => {
+    setSearchText(tagName);
+
+    const searchResult = filterPrompts(tagName);
+    setSearchedResults(searchResult);
+  };
+
   return (
     <section className="feed">
-      <form clasName="relative w-full flex-center">
+      <form className="relative w-full flex-center">
         <input
           type="text"
           placeholder="Search for a tag or a username"
@@ -45,7 +86,7 @@ function Feed() {
         />
       </form>
 
-      <PromptCardList data={posts} handleTagClick={() => {}} />
+      <PromptCardList data={posts} handleTagClick={handleTagClick} />
     </section>
   );
 }

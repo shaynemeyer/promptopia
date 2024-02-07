@@ -1,18 +1,14 @@
 'use client';
 
+import { Post } from '@/types/post';
 import Link from 'next/link';
 
 interface FormProps {
   type: string;
-  post: {
-    prompt: string;
-    tag: string;
-  };
-  setPost: React.Dispatch<
-    React.SetStateAction<{ prompt: string; tag: string }>
-  >;
+  post: Post;
+  setPost: React.Dispatch<React.SetStateAction<Post>>;
   submitting: boolean;
-  handleSubmit: (e) => void;
+  handleSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
 }
 
 function Form({ type, post, setPost, submitting, handleSubmit }: FormProps) {
